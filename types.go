@@ -38,3 +38,4 @@ var DefaultSettings = Settings{
 	MaxTokens:   2048,
 	Temperature: 1.0,
 }
+
