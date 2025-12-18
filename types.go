@@ -144,7 +144,7 @@ func (rm RichMessage) ToMessage() Message {
 			text += block.Text
 		case ContentTypeThinking:
 			if block.Thinking != nil {
-				text += "<think>\n" + block.Thinking.Thinking + "\n</think>\n"
+				text += "<thinking>\n" + block.Thinking.Thinking + "\n</thinking>\n"
 			}
 		}
 	}

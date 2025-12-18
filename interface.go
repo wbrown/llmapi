@@ -71,7 +71,7 @@ type Conversation interface {
 	AddRichMessage(role string, content []ContentBlock)
 
 	// GetRichMessages returns the conversation history with full content blocks.
-	// This preserves images, tool use, thinking, etc that GetMessages() loses.
+	// This preserves images, tool use, thinking, etc that GetMessages(Fix) loses.
 	GetRichMessages() []RichMessage
 
 	// SetTools configures the available tools for this conversation.
