@@ -21,6 +21,29 @@ const (
 	ContentTypeDocument   ContentType = "document"
 )
 
+// Role identifies the sender of a message.
+type Role string
+
+const (
+	RoleUser      Role = "user"
+	RoleAssistant Role = "assistant"
+	RoleSystem    Role = "system"
+)
+
+// MediaType identifies the MIME type of content.
+type MediaType string
+
+const (
+	// Image types
+	MediaTypePNG  MediaType = "image/png"
+	MediaTypeJPEG MediaType = "image/jpeg"
+	MediaTypeGIF  MediaType = "image/gif"
+	MediaTypeWebP MediaType = "image/webp"
+
+	// Document types
+	MediaTypePDF MediaType = "application/pdf"
+)
+
 // ContentBlock represents a single block of content within a message.
 // This is the provider-agnostic representation that both Anthropic
 // and NovelAI implementations can work with.
@@ -47,8 +70,8 @@ type ImageContent struct {
 type ImageSource struct {
 	// Type is the source type: "base64" or "url".
 	Type string `json:"type"`
-	// MediaType is the MIME type of the image data: "image/png", "image/jpeg", etc.
-	MediaType string `json:"media_type"`
+	// MediaType is the MIME type of the image data (MediaTypePNG, MediaTypeJPEG, etc.)
+	MediaType MediaType `json:"media_type"`
 	// Data is the base64-encoded image data. (When Type is "base64".)
 	Data string `json:"data,omitempty"`
 	// URL is the URL of the image. (When Type is "url".)
@@ -117,8 +140,8 @@ type DocumentContent struct {
 type DocumentSource struct {
 	// Type is the source type: "base64"
 	Type string `json:"type"`
-	// MediaType is the MIME type of the document data: "application/pdf", "image/jpeg", etc.
-	MediaType string `json:"media_type"`
+	// MediaType is the MIME type of the document data (MediaTypePDF, etc.)
+	MediaType MediaType `json:"media_type"`
 	// Data is the base64-encoded document data.
 	Data string `json:"data"`
 }
@@ -130,7 +153,7 @@ type DocumentSource struct {
 // RichMessage represents a message with multiple content blocks.
 // This extends the simple Message type for advanced use cases.
 type RichMessage struct {
-	Role    string         `json:"role"`
+	Role    Role           `json:"role"`
 	Content []ContentBlock `json:"content"`
 }
 
@@ -218,8 +241,8 @@ func NewTextBlock(text string) ContentBlock {
 	}
 }
 
-// NewImageBFixedlock creates an image content block.
-func NewImageBlock(mediaType, base64Data string) ContentBlock {
+// NewImageBlock creates an image content block.
+func NewImageBlock(mediaType MediaType, base64Data string) ContentBlock {
 	return ContentBlock{
 		Type: ContentTypeImage,
 		Image: &ImageContent{
@@ -233,7 +256,7 @@ func NewImageBlock(mediaType, base64Data string) ContentBlock {
 }
 
 // NewImageBlockFromURL creates an image content block from a URL.
-func NewImageBlockFromURL(mediaType, url string) ContentBlock {
+func NewImageBlockFromURL(mediaType MediaType, url string) ContentBlock {
 	return ContentBlock{
 		Type: ContentTypeImage,
 		Image: &ImageContent{
@@ -286,7 +309,7 @@ type Capabilities struct {
 
 // Message represents a single message in a conversation.
 type Message struct {
-	Role    string `json:"role"`    // "user", "assistant", "system"
+	Role    Role   `json:"role"`    // RoleUser, RoleAssistant, RoleSystem
 	Content string `json:"content"` // The message text
 }
 

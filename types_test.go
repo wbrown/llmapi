@@ -23,7 +23,7 @@ func TestNewTextBlock(t *testing.T) {
 
 // TestNewImageBlock tests the NewImageBlock helper constructor.
 func TestNewImageBlock(t *testing.T) {
-	block := NewImageBlock("image/png", "base64data")
+	block := NewImageBlock(MediaTypePNG, "base64data")
 
 	if block.Type != ContentTypeImage {
 		t.Errorf("Expected type %s, got %s", ContentTypeImage, block.Type)
@@ -34,8 +34,8 @@ func TestNewImageBlock(t *testing.T) {
 	if block.Image.Source.Type != "base64" {
 		t.Errorf("Expected source type 'base64', got '%s'", block.Image.Source.Type)
 	}
-	if block.Image.Source.MediaType != "image/png" {
-		t.Errorf("Expected media type 'image/png', got '%s'", block.Image.Source.MediaType)
+	if block.Image.Source.MediaType != MediaTypePNG {
+		t.Errorf("Expected media type '%s', got '%s'", MediaTypePNG, block.Image.Source.MediaType)
 	}
 	if block.Image.Source.Data != "base64data" {
 		t.Errorf("Expected data 'base64data', got '%s'", block.Image.Source.Data)
@@ -44,7 +44,7 @@ func TestNewImageBlock(t *testing.T) {
 
 // TestNewImageBlockFromURL tests the NewImageBlockFromURL helper constructor.
 func TestNewImageBlockFromURL(t *testing.T) {
-	block := NewImageBlockFromURL("image/jpeg", "https://example.com/image.jpg")
+	block := NewImageBlockFromURL(MediaTypeJPEG, "https://example.com/image.jpg")
 
 	if block.Type != ContentTypeImage {
 		t.Errorf("Expected type %s, got %s", ContentTypeImage, block.Type)
@@ -55,8 +55,8 @@ func TestNewImageBlockFromURL(t *testing.T) {
 	if block.Image.Source.Type != "url" {
 		t.Errorf("Expected source type 'url', got '%s'", block.Image.Source.Type)
 	}
-	if block.Image.Source.MediaType != "image/jpeg" {
-		t.Errorf("Expected media type 'image/jpeg', got '%s'", block.Image.Source.MediaType)
+	if block.Image.Source.MediaType != MediaTypeJPEG {
+		t.Errorf("Expected media type '%s', got '%s'", MediaTypeJPEG, block.Image.Source.MediaType)
 	}
 	if block.Image.Source.URL != "https://example.com/image.jpg" {
 		t.Errorf("Expected URL 'https://example.com/image.jpg', got '%s'", block.Image.Source.URL)
@@ -113,7 +113,7 @@ func TestNewThinkingBlock(t *testing.T) {
 func TestRichMessageToMessage(t *testing.T) {
 	t.Run("TextOnly", func(t *testing.T) {
 		rm := RichMessage{
-			Role: "assistant",
+			Role: RoleAssistant,
 			Content: []ContentBlock{
 				NewTextBlock("Hello "),
 				NewTextBlock("world!"),
@@ -121,7 +121,7 @@ func TestRichMessageToMessage(t *testing.T) {
 		}
 
 		msg := rm.ToMessage()
-		if msg.Role != "assistant" {
+		if msg.Role != RoleAssistant {
 			t.Errorf("Expected role 'assistant', got '%s'", msg.Role)
 		}
 		if msg.Content != "Hello world!" {
@@ -131,7 +131,7 @@ func TestRichMessageToMessage(t *testing.T) {
 
 	t.Run("WithThinking", func(t *testing.T) {
 		rm := RichMessage{
-			Role: "assistant",
+			Role: RoleAssistant,
 			Content: []ContentBlock{
 				NewThinkingBlock("My reasoning"),
 				NewTextBlock("My response"),
@@ -139,7 +139,7 @@ func TestRichMessageToMessage(t *testing.T) {
 		}
 
 		msg := rm.ToMessage()
-		expected := "<thinking>\nMy reasoning\n</thinkingCan>\nMy response"
+		expected := "<thinking>\nMy reasoning\n</thinking>\nMy response"
 		if msg.Content != expected {
 			t.Errorf("Expected content '%s', got '%s'", expected, msg.Content)
 		}
@@ -147,10 +147,10 @@ func TestRichMessageToMessage(t *testing.T) {
 
 	t.Run("MixedContent", func(t *testing.T) {
 		rm := RichMessage{
-			Role: "user",
+			Role: RoleUser,
 			Content: []ContentBlock{
 				NewTextBlock("Look at this image:"),
-				NewImageBlock("image/png", "base64data"), // Should be ignored
+				NewImageBlock(MediaTypePNG, "base64data"), // Should be ignored
 				NewTextBlock(" What do you see?"),
 			},
 		}
