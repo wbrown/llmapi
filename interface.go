@@ -36,7 +36,7 @@ type Conversation interface {
 	SendStreamingUntilDone(text string, sampling Sampling, callback StreamCallback) (reply, stopReason string, inputTokens, outputTokens int, err error)
 
 	// AddMessage manually adds a message to the conversation history.
-	AddMessage(role, content string)
+	AddMessage(role Role, content string)
 
 	// GetMessages returns the current conversation history.
 	GetMessages() []Message
