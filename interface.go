@@ -68,7 +68,7 @@ type Conversation interface {
 
 	// AddRichMessage adds a message with multiple content blocks to the history.
 	// Use this for adding tool results, images, or other structured content.
-	AddRichMessage(role string, content []ContentBlock)
+	AddRichMessage(role Role, content []ContentBlock)
 
 	// GetRichMessages returns the conversation history with full content blocks.
 	// This preserves images, tool use, thinking, etc that GetMessages(Fix) loses.
