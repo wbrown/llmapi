@@ -1,5 +1,7 @@
 package llmapi
 
+import "context"
+
 // Sampling contains per-call sampling parameters.
 // Zero values mean "use conversation defaults".
 type Sampling struct {
@@ -49,6 +51,11 @@ type Conversation interface {
 
 	// Clear resets the conversation history but keeps the system prompt and settings.
 	Clear()
+
+	// SetContext sets the context for cancellation and timeouts.
+	// The context applies to all subsequent API calls until changed.
+	// Pass nil to clear the context (will use context.Background()).
+	SetContext(ctx context.Context)
 
 	// SetModel changes the model for subsequent API calls.
 	SetModel(model string)
