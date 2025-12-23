@@ -60,6 +60,11 @@ type Conversation interface {
 	// SetModel changes the model for subsequent API calls.
 	SetModel(model string)
 
+	// SetEndpoint overrides the API endpoint URL for this conversation.
+	// Pass empty string to revert to the provider's default endpoint.
+	// This is useful for testing, proxies, or alternative API-compatible services.
+	SetEndpoint(endpoint string)
+
 	// SendRich sends a message with rich content blocks and returns a full response.
 	// This enables multimodal input (images, documents) and captures all response
 	// types (text, thinking, tool use).
