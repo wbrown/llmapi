@@ -22,20 +22,22 @@ type Conversation interface {
 	//   - stopReason: Normalized stop reason ("end_turn", "max_tokens", "stop_sequence")
 	//   - inputTokens: Tokens used for this request's input
 	//   - outputTokens: Tokens generated in this response
+	//   - cacheCreationTokens: Tokens written to cache (Anthropic only, 0 for others)
+	//   - cacheReadTokens: Tokens read from cache (Anthropic only, 0 for others)
 	//   - err: Any error that occurred
-	Send(text string, sampling Sampling) (reply, stopReason string, inputTokens, outputTokens int, err error)
+	Send(text string, sampling Sampling) (reply, stopReason string, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens int, err error)
 
 	// SendStreaming sends a message with real-time token streaming via SSE.
 	// The callback is invoked for each token received.
 	// Sampling parameters override conversation defaults for this call only.
-	SendStreaming(text string, sampling Sampling, callback StreamCallback) (reply, stopReason string, inputTokens, outputTokens int, err error)
+	SendStreaming(text string, sampling Sampling, callback StreamCallback) (reply, stopReason string, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens int, err error)
 
 	// SendUntilDone repeatedly calls Send until stopReason != "max_tokens".
 	// Returns the complete accumulated output.
-	SendUntilDone(text string, sampling Sampling) (reply, stopReason string, inputTokens, outputTokens int, err error)
+	SendUntilDone(text string, sampling Sampling) (reply, stopReason string, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens int, err error)
 
 	// SendStreamingUntilDone combines streaming with auto-continuation.
-	SendStreamingUntilDone(text string, sampling Sampling, callback StreamCallback) (reply, stopReason string, inputTokens, outputTokens int, err error)
+	SendStreamingUntilDone(text string, sampling Sampling, callback StreamCallback) (reply, stopReason string, inputTokens, outputTokens, cacheCreationTokens, cacheReadTokens int, err error)
 
 	// AddMessage manually adds a message to the conversation history.
 	AddMessage(role Role, content string)

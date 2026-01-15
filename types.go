@@ -189,6 +189,12 @@ type RichResponse struct {
 	InputTokens int `json:"input_tokens"`
 	// OutputTokens is the number of output tokens generated.
 	OutputTokens int `json:"output_tokens"`
+	// CacheCreationInputTokens is the number of tokens written to the cache.
+	// Only populated by providers that support prompt caching (e.g., Anthropic).
+	CacheCreationInputTokens int `json:"cache_creation_input_tokens,omitempty"`
+	// CacheReadInputTokens is the number of tokens read from the cache.
+	// Only populated by providers that support prompt caching (e.g., Anthropic).
+	CacheReadInputTokens int `json:"cache_read_input_tokens,omitempty"`
 }
 
 // Text returns the concatenated text from the response.
@@ -317,6 +323,12 @@ type Message struct {
 type Usage struct {
 	InputTokens  int
 	OutputTokens int
+	// CacheCreationInputTokens is the number of tokens written to the cache.
+	// Only populated by providers that support prompt caching (e.g., Anthropic).
+	CacheCreationInputTokens int
+	// CacheReadInputTokens is the number of tokens read from the cache.
+	// Only populated by providers that support prompt caching (e.g., Anthropic).
+	CacheReadInputTokens int
 }
 
 // StreamCallback is called for each token during streaming.
@@ -342,3 +354,4 @@ var DefaultSettings = Settings{
 	MaxTokens:   2048,
 	Temperature: 1.0,
 }
+
