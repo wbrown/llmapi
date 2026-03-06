@@ -309,6 +309,7 @@ type Capabilities struct {
 	SupportsToolUse     bool
 	SupportsThinking    bool
 	SupportsStreaming   bool
+	SupportsCaching     bool
 	MaxImageSize        int64    // bytes, 0 = no limit
 	SupportedImageTypes []string // eg. ["image/png", "image/jpeg"]
 }

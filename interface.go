@@ -94,6 +94,20 @@ type Conversation interface {
 
 	// GetTools returns the currently configured tools.
 	GetTools() []ToolDefinition
+
+	// EnableSystemCaching enables caching for the system prompt.
+	// Returns an error if the provider does not support caching.
+	EnableSystemCaching() error
+
+	// EnableConversationCaching enables automatic cache breakpoints on
+	// conversation turns. Before each API call, the conversation prefix is
+	// marked for caching so subsequent turns can be served from cache.
+	// Returns an error if the provider does not support caching.
+	EnableConversationCaching() error
+
+	// DisableConversationCaching disables automatic conversation turn caching.
+	// Returns an error if the provider does not support caching.
+	DisableConversationCaching() error
 }
 
 // CapabilityProvider is optionally implemented by Conversation implementations
