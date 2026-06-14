@@ -129,4 +129,5 @@ type Provider string
 const (
 	ProviderAnthropic Provider = "anthropic"
 	ProviderNovelAI   Provider = "novelai"
+	ProviderOpenAI    Provider = "openai"
 )
