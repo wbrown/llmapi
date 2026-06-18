@@ -332,9 +332,36 @@ type Usage struct {
 	CacheReadInputTokens int
 }
 
-// StreamCallback is called for each token during streaming.
-// text contains the new token(s), done indicates if streaming is complete.
-type StreamCallback func(text string, done bool)
+// TokenKind classifies a streamed delta: ordinary generated content versus
+// reasoning / chain-of-thought (the "thinking" a reasoning model emits before
+// its answer).
+type TokenKind int
+
+const (
+	// TokenContent is ordinary generated output.
+	TokenContent TokenKind = iota
+	// TokenReasoning is reasoning / chain-of-thought. Providers surface it from
+	// their native channel (openai reasoning_content, anthropic thinking_delta,
+	// novelai inline <think>…</think>); consumers route it separately from
+	// content, as it is not part of the generated answer.
+	TokenReasoning
+)
+
+// StreamDelta is one streamed increment from the model. Kind distinguishes
+// content from reasoning. New fields (token ids, logprobs, tool-call deltas, …)
+// can be added here without changing the StreamCallback signature again.
+type StreamDelta struct {
+	// Text is the new token(s) in this delta.
+	Text string
+	// Done indicates the stream is complete; Text is typically empty on this delta.
+	Done bool
+	// Kind classifies Text as content or reasoning.
+	Kind TokenKind
+}
+
+// StreamCallback is called for each streamed delta. The delta carries the new
+// text, a completion flag, and a Kind tag distinguishing content from reasoning.
+type StreamCallback func(d StreamDelta)
 
 // Settings configures generation parameters.
 // Provider implementations map these to their native formats.

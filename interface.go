@@ -2,12 +2,46 @@ package llmapi
 
 import "context"
 
+// ReasoningEffort requests how much the model reasons before answering. Providers
+// map it to their native control: anthropic → extended-thinking budget tokens,
+// openai (vLLM) → chat_template_kwargs reasoning_effort / enable_thinking, novelai
+// → think on/off. The zero value is ReasoningOff — callers opt IN to reasoning,
+// matching the assumption that reasoning is off by default.
+type ReasoningEffort int
+
+const (
+	ReasoningOff ReasoningEffort = iota
+	ReasoningLow
+	ReasoningMedium
+	ReasoningHigh
+	ReasoningMax
+)
+
+// String returns the lowercase effort level ("off", "low", "medium", "high",
+// "max") — the wire value used by providers that take a reasoning_effort string.
+func (e ReasoningEffort) String() string {
+	switch e {
+	case ReasoningLow:
+		return "low"
+	case ReasoningMedium:
+		return "medium"
+	case ReasoningHigh:
+		return "high"
+	case ReasoningMax:
+		return "max"
+	default:
+		return "off"
+	}
+}
+
 // Sampling contains per-call sampling parameters.
-// Zero values mean "use conversation defaults".
+// Zero values mean "use conversation defaults", except ReasoningEffort whose zero
+// value is ReasoningOff (reasoning disabled).
 type Sampling struct {
-	TopK        int     // 0 = use default, 1 = deterministic
-	Temperature float64 // 0 = use default
-	TopP        float64 // 0 = use default
+	TopK            int             // 0 = use default, 1 = deterministic
+	Temperature     float64         // 0 = use default
+	TopP            float64         // 0 = use default
+	ReasoningEffort ReasoningEffort // zero value = ReasoningOff (reasoning disabled)
 }
 
 // Conversation is the primary interface for LLM interactions.
