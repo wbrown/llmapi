@@ -1,6 +1,10 @@
 package llmapi
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"strings"
+)
 
 // ReasoningEffort requests how much the model reasons before answering. Providers
 // map it to their native control: anthropic → extended-thinking budget tokens,
@@ -32,6 +36,21 @@ func (e ReasoningEffort) String() string {
 	default:
 		return "off"
 	}
+}
+
+// ParseReasoningEffort is the inverse of ReasoningEffort.String: it maps a level
+// string back to the enum, case-insensitively ("off", "low", "medium", "high",
+// "max"). An unrecognized string is an error so the flag/config layer rejects bad
+// input loudly. Deriving the match from String keeps the string<->enum mapping in
+// one place — adding a level updates only String.
+func ParseReasoningEffort(s string) (ReasoningEffort, error) {
+	norm := strings.ToLower(s)
+	for e := ReasoningOff; e <= ReasoningMax; e++ {
+		if e.String() == norm {
+			return e, nil
+		}
+	}
+	return ReasoningOff, fmt.Errorf("invalid reasoning effort %q (want off|low|medium|high|max)", s)
 }
 
 // Sampling contains per-call sampling parameters.
