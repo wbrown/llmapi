@@ -18,11 +18,16 @@ const (
 	ReasoningLow
 	ReasoningMedium
 	ReasoningHigh
+	// ReasoningXHigh sits between high and max — Anthropic's own effort
+	// vocabulary, recommended for the most demanding coding/agentic work.
+	// Providers without a native xhigh tier map it to their nearest level.
+	ReasoningXHigh
 	ReasoningMax
 )
 
 // String returns the lowercase effort level ("off", "low", "medium", "high",
-// "max") — the wire value used by providers that take a reasoning_effort string.
+// "xhigh", "max") — the wire value used by providers that take a
+// reasoning_effort string.
 func (e ReasoningEffort) String() string {
 	switch e {
 	case ReasoningLow:
@@ -31,6 +36,8 @@ func (e ReasoningEffort) String() string {
 		return "medium"
 	case ReasoningHigh:
 		return "high"
+	case ReasoningXHigh:
+		return "xhigh"
 	case ReasoningMax:
 		return "max"
 	default:
@@ -40,9 +47,9 @@ func (e ReasoningEffort) String() string {
 
 // ParseReasoningEffort is the inverse of ReasoningEffort.String: it maps a level
 // string back to the enum, case-insensitively ("off", "low", "medium", "high",
-// "max"). An unrecognized string is an error so the flag/config layer rejects bad
-// input loudly. Deriving the match from String keeps the string<->enum mapping in
-// one place — adding a level updates only String.
+// "xhigh", "max"). An unrecognized string is an error so the flag/config layer
+// rejects bad input loudly. Deriving the match from String keeps the
+// string<->enum mapping in one place — adding a level updates only String.
 func ParseReasoningEffort(s string) (ReasoningEffort, error) {
 	norm := strings.ToLower(s)
 	for e := ReasoningOff; e <= ReasoningMax; e++ {
@@ -50,7 +57,7 @@ func ParseReasoningEffort(s string) (ReasoningEffort, error) {
 			return e, nil
 		}
 	}
-	return ReasoningOff, fmt.Errorf("invalid reasoning effort %q (want off|low|medium|high|max)", s)
+	return ReasoningOff, fmt.Errorf("invalid reasoning effort %q (want off|low|medium|high|xhigh|max)", s)
 }
 
 // Sampling contains per-call sampling parameters.
@@ -61,6 +68,14 @@ type Sampling struct {
 	Temperature     float64         // 0 = use default
 	TopP            float64         // 0 = use default
 	ReasoningEffort ReasoningEffort // zero value = ReasoningOff (reasoning disabled)
+
+	// DesiredOutputTokens is how many tokens of real content this call wants —
+	// task intent, not the wire max_tokens. The provider computes the wire cap
+	// from it: desired output plus whatever reasoning headroom the effective
+	// thinking mode needs, clamped to the model's real per-request output
+	// ceiling. 0 = use the conversation's configured default (Settings
+	// MaxTokens, which providers treat as the default desired output).
+	DesiredOutputTokens int
 }
 
 // Conversation is the primary interface for LLM interactions.
