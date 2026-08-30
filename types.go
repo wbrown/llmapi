@@ -3,7 +3,10 @@
 // allowing code to swap providers with minimal changes.
 package llmapi
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"math"
+)
 
 // ==========================================================================
 // Content Block Types
@@ -298,6 +301,39 @@ func NewThinkingBlock(thinking string) ContentBlock {
 }
 
 // ==========================================================================
+// Logprob Types
+// ==========================================================================
+
+// TokenLogprob represents log probability information for a single generated token.
+type TokenLogprob struct {
+	// Token is the generated token string.
+	Token string `json:"token"`
+	// Logprob is the log probability of this token.
+	Logprob float64 `json:"logprob"`
+	// TopLogprobs contains the top alternative tokens and their log probabilities.
+	TopLogprobs map[string]float64 `json:"top_logprobs,omitempty"`
+	// TextOffset is the character offset of this token in the generated text.
+	TextOffset int `json:"text_offset"`
+}
+
+// Percent returns the token's probability as a percentage (0.00 - 100.00).
+func (t TokenLogprob) Percent() float64 {
+	return math.Exp(t.Logprob) * 100.0
+}
+
+// TopLogprobsPercent returns the top alternative tokens with their probabilities as percentages.
+func (t TokenLogprob) TopLogprobsPercent() map[string]float64 {
+	if len(t.TopLogprobs) == 0 {
+		return nil
+	}
+	result := make(map[string]float64, len(t.TopLogprobs))
+	for token, lp := range t.TopLogprobs {
+		result[token] = math.Exp(lp) * 100.0
+	}
+	return result
+}
+
+// ==========================================================================
 // Compatibility Detection
 // ==========================================================================
 
@@ -310,6 +346,7 @@ type Capabilities struct {
 	SupportsThinking    bool
 	SupportsStreaming   bool
 	SupportsCaching     bool
+	SupportsLogprobs    bool
 	MaxImageSize        int64    // bytes, 0 = no limit
 	SupportedImageTypes []string // eg. ["image/png", "image/jpeg"]
 }
