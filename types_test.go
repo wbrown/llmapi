@@ -1,6 +1,9 @@
 package llmapi
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 // TestNewTextBlock tests the NewTextBlock helper constructor.
 func TestNewTextBlock(t *testing.T) {
@@ -261,6 +264,72 @@ func TestRichResponseHasToolUse(t *testing.T) {
 		rr := RichResponse{}
 		if rr.HasToolUse() {
 			t.Error("Expected HasToolUse() to return false for empty response")
+		}
+	})
+}
+
+// TestRichResponse_CarriesRequestAccount pins the account a RichResponse
+// carries beside its content: the completion budget the request carried on
+// the wire, the server's own finish reason, and the output tokens attributed
+// per channel. The split's Known flag
+// separates a server that attributed nothing from one that attributed zero
+// reasoning tokens, and both readings survive a JSON round trip.
+func TestRichResponse_CarriesRequestAccount(t *testing.T) {
+	roundTrip := func(t *testing.T, sent RichResponse) RichResponse {
+		encoded, err := json.Marshal(sent)
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		var got RichResponse
+		if err := json.Unmarshal(encoded, &got); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
+		return got
+	}
+
+	t.Run("Attributed", func(t *testing.T) {
+		sent := RichResponse{
+			Content:          []ContentBlock{NewTextBlock("answer")},
+			StopReason:       "end_turn",
+			FinishReason:     "stop",
+			InputTokens:      29,
+			OutputTokens:     553,
+			CompletionBudget: 24576,
+			OutputSplit:      OutputTokenSplit{Reasoning: 522, Content: 31, Known: true},
+		}
+		got := roundTrip(t, sent)
+		if got.CompletionBudget != 24576 {
+			t.Errorf("CompletionBudget = %d, want 24576", got.CompletionBudget)
+		}
+		if got.FinishReason != "stop" {
+			t.Errorf("FinishReason = %q, want %q", got.FinishReason, "stop")
+		}
+		if got.StopReason != "end_turn" {
+			t.Errorf("StopReason = %q, want %q", got.StopReason, "end_turn")
+		}
+		if got.OutputSplit != sent.OutputSplit {
+			t.Errorf("OutputSplit = %+v, want %+v", got.OutputSplit, sent.OutputSplit)
+		}
+	})
+
+	t.Run("Unattributed", func(t *testing.T) {
+		got := roundTrip(t, RichResponse{OutputTokens: 553})
+		if got.OutputSplit.Known {
+			t.Errorf("OutputSplit = %+v, want an unknown split for a server that attributed no channel", got.OutputSplit)
+		}
+	})
+
+	t.Run("KnownZeroReasoning", func(t *testing.T) {
+		sent := RichResponse{
+			OutputTokens: 31,
+			OutputSplit:  OutputTokenSplit{Reasoning: 0, Content: 31, Known: true},
+		}
+		got := roundTrip(t, sent)
+		if !got.OutputSplit.Known {
+			t.Errorf("OutputSplit = %+v, want a known split: zero reasoning tokens the server attributed is a real zero", got.OutputSplit)
+		}
+		if got.OutputSplit != sent.OutputSplit {
+			t.Errorf("OutputSplit = %+v, want %+v", got.OutputSplit, sent.OutputSplit)
 		}
 	})
 }

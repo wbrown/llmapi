@@ -178,8 +178,27 @@ func (rm RichMessage) ToMessage() Message {
 	}
 }
 
+// OutputTokenSplit divides a response's output tokens between the reasoning
+// channel and the content channel, as the server attributed them. Known
+// reports whether the server attributed them at all: a server that reports
+// only a completion total leaves Known false, and Reasoning and Content then
+// carry no information. With Known true a zero count is a real zero, as on a
+// reasoning-off request whose Reasoning is 0.
+type OutputTokenSplit struct {
+	// Reasoning is the count of output tokens the server attributed to the
+	// reasoning channel.
+	Reasoning int `json:"reasoning"`
+	// Content is the count of output tokens the server attributed to the
+	// content channel.
+	Content int `json:"content"`
+	// Known is true when the server attributed the output tokens per channel.
+	Known bool `json:"known"`
+}
+
 // RichResponse contains the full response from a SendRich operation,
-// including all content blocks, not just text.
+// including all content blocks, not just text, and the account of the
+// request that produced it: what the provider sent and what the server
+// reported about the completion.
 type RichResponse struct {
 	// Content contains all response content blocks.
 	Content []ContentBlock `json:"content"`
@@ -195,6 +214,18 @@ type RichResponse struct {
 	// CacheReadInputTokens is the number of tokens read from the cache.
 	// Only populated by providers that support prompt caching (e.g., Anthropic).
 	CacheReadInputTokens int `json:"cache_read_input_tokens,omitempty"`
+	// CompletionBudget is the output-token cap the request carried on the
+	// wire (max_tokens, max_completion_tokens), after the provider's reasoning
+	// headroom and output-ceiling clamp. 0 when the request carried no cap.
+	CompletionBudget int `json:"completion_budget,omitempty"`
+	// FinishReason is the server's own word for why the completion ended
+	// (openai finish_reason, anthropic stop_reason), the value StopReason is
+	// normalized from. Empty when the server reported none.
+	FinishReason string `json:"finish_reason,omitempty"`
+	// OutputSplit divides OutputTokens between the reasoning and content
+	// channels as the server attributed them; its Known flag says whether the
+	// server attributed them at all.
+	OutputSplit OutputTokenSplit `json:"output_split"`
 }
 
 // Text returns the concatenated text from the response.
